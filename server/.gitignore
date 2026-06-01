@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Environment configurations
+.env
+.env.test
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Public uploads folder cache (ignores actual files inside uploads, keeping the structure)
+public/uploads/*
+!public/uploads/.gitkeep
+
+# IDE caches
+.idea/
+.vscode/
+.DS_Store

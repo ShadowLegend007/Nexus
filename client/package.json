@@ -1,0 +1,35 @@
+{
+  "name": "securechat-client",
+  "version": "1.0.0",
+  "description": "React + Vite frontend for SecureChat",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "author": "Subhodeep",
+  "license": "MIT",
+  "dependencies": {
+    "@headlessui/react": "^1.7.17",
+    "axios": "^1.7.2",
+    "clsx": "^2.1.1",
+    "html5-qrcode": "^2.3.8",
+    "lucide-react": "^1.17.0",
+    "qrcode.react": "^4.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hot-toast": "^2.4.17",
+    "react-icons": "^5.2.1",
+    "react-router-dom": "^6.23.1",
+    "socket.io-client": "^4.7.5",
+    "tailwind-merge": "^3.6.0",
+    "zustand": "^4.5.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.5.0",
+    "tailwindcss": "^3.4.7",
+    "vite": "^5.3.2"
+  }
+}
