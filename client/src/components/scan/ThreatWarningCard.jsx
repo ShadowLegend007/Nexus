@@ -32,11 +32,11 @@ export function ThreatWarningCard({
         🚫 THREAT DETECTED
       </div>
       
-      <div className="space-y-1 text-xs text-text-secondaryDark mb-4">
-        <div><strong className="text-text-primaryDark">Type:</strong> <span className="font-mono text-danger">{threatType}</span></div>
-        <div><strong className="text-text-primaryDark">Confidence:</strong> <span className="font-semibold text-danger">{confidencePercentage}%</span></div>
-        <div><strong className="text-text-primaryDark">Detected by:</strong> AI Security Model</div>
-        <div className="mt-2 text-text-mutedDark italic">This content has been quarantined.</div>
+      <div className="space-y-1 text-xs text-text-secondaryLight dark:text-text-secondaryDark mb-4">
+        <div><strong className="text-text-primaryLight dark:text-text-primaryDark">Type:</strong> <span className="font-mono text-danger">{threatType}</span></div>
+        <div><strong className="text-text-primaryLight dark:text-text-primaryDark">Confidence:</strong> <span className="font-semibold text-danger">{confidencePercentage}%</span></div>
+        <div><strong className="text-text-primaryLight dark:text-text-primaryDark">Detected by:</strong> AI Security Model</div>
+        <div className="mt-2 text-text-secondaryLight dark:text-text-secondaryDark italic">This content has been quarantined.</div>
       </div>
 
       <div className="flex gap-2 justify-end">
@@ -67,11 +67,11 @@ export function ThreatWarningCard({
             <AlertTriangle size={32} />
           </div>
           
-          <h4 className="text-base font-bold text-text-primaryDark dark:text-text-primaryDark light:text-text-primaryLight">
+          <h4 className="text-base font-bold text-text-primaryLight dark:text-text-primaryDark dark:text-text-primaryLight dark:text-text-primaryDark light:text-text-primaryLight">
             Are you absolutely sure?
           </h4>
           
-          <p className="text-sm text-text-secondaryDark leading-relaxed">
+          <p className="text-sm text-text-secondaryLight dark:text-text-secondaryDark leading-relaxed">
             AI has flagged this content as high risk ({confidencePercentage}% confidence {threatType}). Overriding the block could expose your device to security vulnerabilities, malware executables, or phishing links.
           </p>
 

@@ -5,7 +5,7 @@ import { getScanStatusConfig } from '../../utils/scanStatus';
 
 export function ScanStatusBadge({ status }) {
   const [visible, setVisible] = useState(true);
-  const [hovered, setHovered] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const config = getScanStatusConfig(status);
 
   useEffect(() => {
@@ -22,12 +22,12 @@ export function ScanStatusBadge({ status }) {
     }
   }, [status]);
 
-  if (!visible && !hovered && status === SCAN_STATES.CLEAN) {
-    // Render an ultra-microscopic safe indicator dot so the user can hover to reveal it
+  if (!visible && !expanded && status === SCAN_STATES.CLEAN) {
+    // Render an ultra-microscopic safe indicator dot so the user can click to reveal it
     return (
       <div 
-        className="absolute bottom-1 right-2 flex items-center justify-end w-4 h-4 cursor-pointer"
-        onMouseEnter={() => setHovered(true)}
+        className="flex items-center justify-center w-4 h-4 cursor-pointer transition-transform active:scale-90"
+        onClick={() => setExpanded(true)}
       >
         <span className="w-1.5 h-1.5 rounded-full bg-success/80 block" />
       </div>
@@ -51,9 +51,8 @@ export function ScanStatusBadge({ status }) {
 
   return (
     <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className={`inline-flex items-center text-[10px] font-semibold py-0.5 px-2 rounded-full border transition-all duration-300 ${config.bgClass}`}
+      onClick={() => setExpanded(false)}
+      className={`inline-flex items-center text-[10px] font-semibold py-0.5 px-2 rounded-full border transition-all duration-300 cursor-pointer ${config.bgClass}`}
     >
       {getIcon()}
       <span>{config.label}</span>

@@ -28,9 +28,11 @@ export function Avatar({
     <div className={`relative inline-flex flex-shrink-0 ${className}`}>
       {src ? (
         <img
+          key={src}
           src={src}
           alt={name}
-          className={`${sizes[size]} rounded-full object-cover border border-border-dark/60 dark:border-border-dark/60 light:border-border-light/60`}
+          className={`${sizes[size]} rounded-full object-cover`}
+          style={{ border: '1px solid var(--border-primary)' }}
           onError={(e) => {
             // If image fails to load, clear src to trigger fallback to initials
             e.target.src = '';
@@ -38,16 +40,26 @@ export function Avatar({
           }}
         />
       ) : (
-        <div className={`${sizes[size]} rounded-full border border-border-dark bg-surface-dark2 text-text-primaryDark flex items-center justify-center font-bold dark:border-border-dark dark:bg-surface-dark2 dark:text-text-primaryDark light:border-border-light light:bg-surface-light2 light:text-text-primaryLight`}>
+        <div
+          className={`${sizes[size]} rounded-full flex items-center justify-center font-bold`}
+          style={{
+            background: 'var(--bg-hover)',
+            border: '1px solid var(--border-primary)',
+            color: 'var(--text-primary)',
+          }}
+        >
           {getInitials(name)}
         </div>
       )}
       
       {/* Online indicator dot */}
       {status && (
-        <span className={`absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-background-dark dark:ring-background-dark light:ring-background-light ${
-          status === 'online' ? 'bg-success' : 'bg-text-mutedDark'
-        }`} />
+        <span
+          className={`absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ${
+            status === 'online' ? 'bg-success' : 'bg-gray-400'
+          }`}
+          style={{ boxShadow: '0 0 0 2px var(--bg-app)' }}
+        />
       )}
     </div>
   );

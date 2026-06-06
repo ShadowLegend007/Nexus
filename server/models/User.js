@@ -31,6 +31,14 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  encryptedPrivateKey: {
+    type: String,
+    default: ''
+  },
+  preferences: {
+    type: Object,
+    default: { chatBg: 'default', layout: 'default', avatarPreset: '' }
+  },
   avatar: {
     type: String,
     default: ''

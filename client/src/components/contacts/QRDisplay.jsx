@@ -1,8 +1,9 @@
 import React from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
-import { Download, Copy, Check } from 'lucide-react';
+import { Copy, Check, Download, ShieldCheck } from 'lucide-react';
 import { formatHexId, copyToClipboard } from '../../utils/hexGenerator';
-import Button from '../ui/Button';
+import { Button } from '../ui/Button';
+import { HexDisplay } from '../ui/HexDisplay';
 import toast from 'react-hot-toast';
 
 export function QRDisplay({ hexId, username }) {
@@ -13,7 +14,7 @@ export function QRDisplay({ hexId, username }) {
     copyToClipboard(formattedHex)
       .then(() => {
         setCopied(true);
-        toast.success('Hex ID copied to clipboard!');
+        toast.success('Hex Code copied to clipboard!');
         setTimeout(() => setCopied(false), 2000);
       })
       .catch((err) => {
@@ -22,10 +23,9 @@ export function QRDisplay({ hexId, username }) {
       });
   };
 
-
-  const downloadQR = () => {
+  const handleDownload = () => {
     try {
-      const canvas = document.getElementById('qr-canvas');
+      const canvas = document.getElementById('qr-canvas-contact');
       if (!canvas) {
         toast.error('Failed to capture QR canvas');
         return;
@@ -34,7 +34,7 @@ export function QRDisplay({ hexId, username }) {
       const pngUrl = canvas.toDataURL('image/png');
       const downloadLink = document.createElement('a');
       downloadLink.href = pngUrl;
-      downloadLink.download = `SecureChat-QR-${username || 'identity'}.png`;
+      downloadLink.download = `Nexus-ID-${username || 'profile'}.png`;
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
@@ -46,12 +46,22 @@ export function QRDisplay({ hexId, username }) {
   };
 
   return (
-    <div className="flex flex-col items-center p-6 bg-surface-dark2 border border-border-dark rounded-2xl w-full max-w-sm text-center dark:bg-surface-dark2 dark:border-border-dark light:bg-surface-light2 light:border-border-light">
-      <div className="p-3 bg-white rounded-2xl mb-4 shadow-xl">
+    <div className="flex flex-col items-center w-full text-center mx-auto">
+      <div className="flex items-center text-[10px] text-success font-bold uppercase tracking-widest mb-4 bg-success/10 px-3 py-1 rounded-full border border-success/30 ">
+        <ShieldCheck size={14} className="mr-1.5" />
+        Verified Identity Code
+      </div>
+
+      <div className="relative p-3 bg-white rounded-2xl mb-6 shadow-inner group overflow-hidden">
+        {/* Animated Sweep Line */}
+        <div className="absolute left-0 w-full h-[2px] bg-success shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-sweep pointer-events-none z-10" />
+        {/* Glow Ring */}
+        <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-primary/40 transition-colors duration-500 pointer-events-none z-10" />
+        
         <QRCodeCanvas
-          id="qr-canvas"
+          id="qr-canvas-contact"
           value={hexId || ''}
-          size={180}
+          size={200}
           bgColor="#FFFFFF"
           fgColor="#000000"
           level="H"
@@ -59,24 +69,37 @@ export function QRDisplay({ hexId, username }) {
         />
       </div>
 
-      <div className="w-full space-y-3">
-        <div>
-          <div className="text-xs text-text-secondaryDark dark:text-text-secondaryDark light:text-text-secondaryLight uppercase tracking-wider mb-1 font-semibold">
-            YOUR DIGITAL IDENTITY
-          </div>
-          <div className="text-xl font-bold font-mono tracking-wider text-primary">
-            {formattedHex}
+      <div className="w-full space-y-4">
+        <div className="w-full px-2">
+          <span className="text-[10px] font-bold uppercase tracking-widest block mb-2" style={{ color: 'var(--text-muted)' }}>
+            {username ? `${username.toUpperCase()}'S IDENTITY` : 'HEX-CODE IDENTITY'}
+          </span>
+          <div className="w-full overflow-hidden px-1">
+            <HexDisplay hexCode={formattedHex} className="text-xl sm:text-2xl" />
           </div>
         </div>
 
-        <div className="flex gap-2 w-full justify-center">
-          <Button variant="outline" onClick={handleCopy} className="flex-1 !py-1.5 !px-3">
-            {copied ? <Check size={14} className="mr-1.5" /> : <Copy size={14} className="mr-1.5" />}
-            Copy Hex
-          </Button>
-          <Button variant="primary" onClick={downloadQR} className="flex-1 !py-1.5 !px-3 bg-primary border-primary">
-            <Download size={14} className="mr-1.5" />
-            Download QR
+        <p className="text-[11px] text-text-secondaryLight dark:text-text-secondaryDark leading-relaxed px-2">
+          {username 
+            ? `This is ${username}'s unique address. Scan or copy it to verify their identity.`
+            : `This is the unique address. Share this code or QR to exchange real-time encrypted messages.`}
+        </p>
+
+        <div className="flex gap-3 w-full">
+          <button 
+            onClick={handleCopy} 
+            className="flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold transition-all text-sm group"
+            style={{ background: 'var(--bg-input)', border: '1px solid var(--border-input)', color: 'var(--text-primary)' }}
+            onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
+            onMouseOut={e => { e.currentTarget.style.borderColor = 'var(--border-input)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+          >
+            {copied ? <Check size={16} className="text-success" /> : <Copy size={16} />}
+            {copied ? 'Copied' : 'Copy Hex'}
+          </button>
+          
+          <Button onClick={handleDownload} className="flex-1 text-sm">
+            <Download size={16} />
+            Download
           </Button>
         </div>
       </div>

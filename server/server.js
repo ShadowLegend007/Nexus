@@ -22,7 +22,7 @@ const server = http.createServer(app);
 // Initialize Socket.io
 const io = socketio(server, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: true,
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -39,7 +39,7 @@ app.use(helmet({
   crossOriginResourcePolicy: false, // Allow loading local uploads from frontend
 }));
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: true,
   credentials: true,
 }));
 app.use(express.json());
@@ -77,6 +77,6 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`SecureChat Server running on port ${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Nexus Server running on port ${PORT}`);
 });

@@ -1,57 +1,65 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import AddContact from '../components/contacts/AddContact';
-import Button from '../components/ui/Button';
 import { ArrowLeft, UserPlus, Shield } from 'lucide-react';
+import { Card } from '../components/ui/Card';
 
 export function AddContactPage() {
   const navigate = useNavigate();
 
   const handleContactAdded = () => {
-    // Redirect back to chat page on success to begin conversing
     setTimeout(() => {
       navigate('/chat');
     }, 1500);
   };
 
   return (
-    <div className="min-h-screen bg-background-dark text-text-primaryDark flex flex-col font-sans dark:bg-background-dark dark:text-text-primaryDark light:bg-background-light light:text-text-primaryLight">
+    <div className="min-h-screen flex flex-col font-sans" style={{ backgroundColor: 'var(--bg-app)', color: 'var(--text-primary)' }}>
       {/* Navbar Header */}
-      <header className="px-6 py-4 border-b border-border-dark dark:border-border-dark light:border-border-light bg-surface-dark/40 dark:bg-surface-dark/40 light:bg-surface-light/40 backdrop-blur z-10">
+      <header className="px-6 py-4 card border-x-0 border-t-0 rounded-none z-10">
         <div className="max-w-xl mx-auto flex items-center justify-between">
-          <Button
-            variant="outline"
+          <button
             onClick={() => navigate('/chat')}
-            className="!py-1.5 !px-3 hover:bg-surface-dark2"
+            className="flex items-center text-sm font-medium text-text-secondaryLight dark:text-text-secondaryDark hover:text-white transition-colors group"
           >
-            <ArrowLeft size={16} className="mr-2" />
+            <ArrowLeft size={16} className="mr-2 group-hover:-translate-x-1 transition-transform" />
             Back
-          </Button>
+          </button>
 
           <div className="flex items-center space-x-2">
             <Shield size={18} className="text-primary animate-pulse" />
-            <span className="font-bold text-sm tracking-wider uppercase">
-              Add Secure Contact
+            <span className="font-display font-bold text-sm tracking-wider uppercase">
+              Secure Network
             </span>
           </div>
 
-          <div className="w-[80px]" /> {/* Spacer */}
+          <div className="w-[60px]" /> {/* Spacer */}
         </div>
       </header>
 
       {/* Composition Area */}
-      <main className="flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-md bg-surface-dark border border-border-dark rounded-3xl p-6 md:p-8 shadow-xl text-left dark:bg-surface-dark dark:border-border-dark light:bg-surface-light light:border-border-light animate-scale-up">
-          <div className="flex flex-col items-center text-center space-y-2 mb-6">
-            <div className="p-3 bg-primary/10 text-primary border border-primary/20 rounded-2xl">
-              <UserPlus size={24} />
+      <main className="flex-1 flex items-center justify-center p-6 page-transition">
+        <Card className="w-full max-w-md p-8 text-left">
+          <div className="flex flex-col items-center text-center space-y-3 mb-8">
+            <div
+              className="relative p-4 rounded-full mb-2 group-hover:scale-110 transition-transform"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)' }}
+            >
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary animate-draw">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <line x1="19" y1="8" x2="19" y2="14" className="text-accent" />
+                <line x1="22" y1="11" x2="16" y2="11" className="text-accent" />
+              </svg>
             </div>
-            <h2 className="text-xl font-bold tracking-tight">Expand Network</h2>
-            <p className="text-xs text-text-secondaryDark">Scan friend's QR or key in Hex ID digits</p>
+            <h2 className="text-3xl font-display font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+              Expand Network
+            </h2>
+            <p className="text-sm text-text-secondaryLight dark:text-text-secondaryDark font-medium">Scan a QR code or enter a unique Hex ID</p>
           </div>
 
           <AddContact onContactAdded={handleContactAdded} />
-        </div>
+        </Card>
       </main>
     </div>
   );

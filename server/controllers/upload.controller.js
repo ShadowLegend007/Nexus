@@ -23,14 +23,10 @@ const uploadFile = async (req, res) => {
 
     let fileUrl = '';
     
-    // Check if uploaded using Cloudinary Storage or Local Disk Storage
-    if (req.file.path && req.file.path.startsWith('http')) {
-      fileUrl = req.file.path; // Cloudinary URL
-    } else {
-      // Local URL fallback
-      const serverUrl = process.env.ML_CALLBACK_URL || `http://localhost:${process.env.PORT || 5000}`;
-      fileUrl = `${serverUrl}/uploads/${req.file.filename}`;
-    }
+    // Always use local URL built from the incoming request
+    const host = req.get('host');
+    const protocol = req.protocol;
+    fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
 
     const contentType = getContentTypeFromMimetype(req.file.mimetype);
 

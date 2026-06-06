@@ -14,9 +14,31 @@ const addContact = async (req, res) => {
 
     const cleanHex = hexId.replace(/-/g, '').toUpperCase();
 
-    // Check if user is adding themselves
+    // Check if user is adding themselves — route to self-contact creation
     if (req.user.hexId === cleanHex) {
-      return res.status(400).json({ message: 'You cannot add yourself as a contact' });
+      const userId = req.user._id;
+      const existing = await Contact.findOne({ userId, contactUserId: userId });
+      if (existing) {
+        return res.status(200).json({ message: 'Self-contact already exists', contact: existing });
+      }
+      const selfContact = await Contact.create({
+        userId,
+        contactUserId: userId,
+        contactHexId: req.user.hexId,
+        nickname: `${req.user.username} (You)`,
+      });
+      return res.status(201).json({
+        message: 'Self-contact added',
+        contact: {
+          _id: selfContact._id,
+          contactUserId: userId,
+          contactHexId: req.user.hexId,
+          username: req.user.username,
+          avatar: req.user.avatar,
+          nickname: selfContact.nickname,
+          addedAt: selfContact.addedAt,
+        },
+      });
     }
 
     // Resolve hexId to user
@@ -55,6 +77,40 @@ const addContact = async (req, res) => {
     });
   } catch (error) {
     console.error('Add Contact Error:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// @desc    Add self-contact entry
+// @route   POST /api/contacts/add-self
+// @access  Private
+const addSelfContact = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const existing = await Contact.findOne({ userId, contactUserId: userId });
+    if (existing) {
+      return res.status(200).json({ message: 'Self-contact already exists', contact: existing });
+    }
+    const contact = await Contact.create({
+      userId,
+      contactUserId: userId,
+      contactHexId: req.user.hexId,
+      nickname: `${req.user.username} (You)`,
+    });
+    return res.status(201).json({
+      message: 'Self-contact added',
+      contact: {
+        _id: contact._id,
+        contactUserId: userId,
+        contactHexId: req.user.hexId,
+        username: req.user.username,
+        avatar: req.user.avatar,
+        nickname: contact.nickname,
+        addedAt: contact.addedAt,
+      },
+    });
+  } catch (error) {
+    console.error('Add Self Contact Error:', error);
     return res.status(500).json({ message: 'Server error' });
   }
 };
@@ -115,6 +171,7 @@ const resolveHex = async (req, res) => {
 
 module.exports = {
   addContact,
+  addSelfContact,
   listContacts,
   resolveHex,
 };

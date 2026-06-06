@@ -1,11 +1,11 @@
 import { create } from 'zustand';
-import { login as apiLogin, register as apiRegister, getMe as apiGetMe } from '../api/auth';
+import { login as apiLogin, register as apiRegister, getMe as apiGetMe, forgotPassword as apiForgotPassword, verifyOtp as apiVerifyOtp, resetPassword as apiResetPassword } from '../api/auth';
 
 export const useAuthStore = create((set) => ({
   user: null,
-  token: localStorage.getItem('securechat_token') || null,
-  hexId: localStorage.getItem('securechat_hexId') || null,
-  isAuthenticated: !!localStorage.getItem('securechat_token'),
+  token: localStorage.getItem('nexus_token') || null,
+  hexId: localStorage.getItem('nexus_hexId') || null,
+  isAuthenticated: !!localStorage.getItem('nexus_token'),
   loading: false,
   error: null,
 
@@ -13,8 +13,8 @@ export const useAuthStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       const data = await apiLogin(email, password);
-      localStorage.setItem('securechat_token', data.token);
-      localStorage.setItem('securechat_hexId', data.hexId);
+      localStorage.setItem('nexus_token', data.token);
+      localStorage.setItem('nexus_hexId', data.hexId);
       set({
         user: data.user,
         token: data.token,
@@ -34,8 +34,8 @@ export const useAuthStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       const data = await apiRegister(username, email, password);
-      localStorage.setItem('securechat_token', data.token);
-      localStorage.setItem('securechat_hexId', data.hexId);
+      localStorage.setItem('nexus_token', data.token);
+      localStorage.setItem('nexus_hexId', data.hexId);
       set({
         user: data.user,
         token: data.token,
@@ -52,7 +52,7 @@ export const useAuthStore = create((set) => ({
   },
 
   checkAuth: async () => {
-    const token = localStorage.getItem('securechat_token');
+    const token = localStorage.getItem('nexus_token');
     if (!token) {
       set({ isAuthenticated: false, user: null });
       return;
@@ -68,8 +68,8 @@ export const useAuthStore = create((set) => ({
         loading: false,
       });
     } catch (err) {
-      localStorage.removeItem('securechat_token');
-      localStorage.removeItem('securechat_hexId');
+      localStorage.removeItem('nexus_token');
+      localStorage.removeItem('nexus_hexId');
       set({
         user: null,
         token: null,
@@ -81,8 +81,8 @@ export const useAuthStore = create((set) => ({
   },
 
   logout: () => {
-    localStorage.removeItem('securechat_token');
-    localStorage.removeItem('securechat_hexId');
+    localStorage.removeItem('nexus_token');
+    localStorage.removeItem('nexus_hexId');
     set({
       user: null,
       token: null,
@@ -96,6 +96,45 @@ export const useAuthStore = create((set) => ({
     set((state) => ({
       user: state.user ? { ...state.user, avatar: newAvatarUrl } : null,
     }));
+  },
+
+  forgotPassword: async (email) => {
+    set({ loading: true, error: null });
+    try {
+      const data = await apiForgotPassword(email);
+      set({ loading: false });
+      return data;
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to send OTP';
+      set({ error: msg, loading: false });
+      throw new Error(msg);
+    }
+  },
+
+  verifyOtp: async (email, otp) => {
+    set({ loading: true, error: null });
+    try {
+      const data = await apiVerifyOtp(email, otp);
+      set({ loading: false });
+      return data;
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to verify OTP';
+      set({ error: msg, loading: false });
+      throw new Error(msg);
+    }
+  },
+
+  resetPassword: async (email, otp, newPassword) => {
+    set({ loading: true, error: null });
+    try {
+      const data = await apiResetPassword(email, otp, newPassword);
+      set({ loading: false });
+      return data;
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to reset password';
+      set({ error: msg, loading: false });
+      throw new Error(msg);
+    }
   }
 }));
 

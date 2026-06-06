@@ -1,0 +1,279 @@
+/* =====================================================================
+   NEXUS THEME SYSTEM - CSS Custom Properties
+   Themes: dark (default), deep-night, light, warm-light, monochrome, inverted
+   Applied via: data-theme=".." on <html>
+   ===================================================================== */
+
+/* ── Default / Dark ─────────────────────────────────────────────────── */
+:root,
+[data-theme="dark"] {
+  --bg-app:         #0f0f1a;
+  --bg-sidebar:     rgba(0, 0, 0, 0.65);
+  --bg-chat:        #0f0f1a;
+  --bg-bubble-me:   linear-gradient(135deg, #7c3aed, #6d28d9);
+  --bg-bubble-them: rgba(255, 255, 255, 0.07);
+  --bg-input:       rgba(255, 255, 255, 0.05);
+  --bg-card:        rgba(255, 255, 255, 0.04);
+  --bg-hover:       rgba(255, 255, 255, 0.07);
+  --bg-active:      rgba(124, 58, 237, 0.2);
+  --bg-modal:       #1a1a2e;
+  --bg-panel:       rgba(10, 10, 22, 0.92);
+
+  --border-primary: rgba(255, 255, 255, 0.08);
+  --border-active:  rgba(124, 58, 237, 0.5);
+  --border-input:   rgba(255, 255, 255, 0.1);
+
+  --text-primary:   #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted:     rgba(255, 255, 255, 0.3);
+  --text-accent:    #a855f7;
+
+  --accent:         #7c3aed;
+  --accent-hover:   #6d28d9;
+  --accent-glow:    rgba(124, 58, 237, 0.25);
+  --accent-text:    #ffffff;
+
+  --bubble-me-text: rgba(255, 255, 255, 0.95);
+
+  --scrollbar:      rgba(124, 58, 237, 0.3);
+  --scrollbar-hover:rgba(124, 58, 237, 0.6);
+
+  --shadow-card:    0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-bubble:  0 4px 20px rgba(124, 58, 237, 0.2);
+  --backdrop:       blur(20px);
+}
+
+/* ── Deep Night ─────────────────────────────────────────────────────── */
+[data-theme="deep-night"] {
+  --bg-app:         #000000;
+  --bg-sidebar:     rgba(5, 5, 15, 0.85);
+  --bg-chat:        #050510;
+  --bg-bubble-me:   linear-gradient(135deg, #2563eb, #1d4ed8);
+  --bg-bubble-them: rgba(255, 255, 255, 0.05);
+  --bg-input:       rgba(255, 255, 255, 0.04);
+  --bg-card:        rgba(255, 255, 255, 0.03);
+  --bg-hover:       rgba(255, 255, 255, 0.06);
+  --bg-active:      rgba(37, 99, 235, 0.2);
+  --bg-modal:       #0a0a1a;
+  --bg-panel:       rgba(5, 5, 20, 0.95);
+
+  --border-primary: rgba(255, 255, 255, 0.06);
+  --border-active:  rgba(37, 99, 235, 0.5);
+  --border-input:   rgba(255, 255, 255, 0.08);
+
+  --text-primary:   #e2e8f0;
+  --text-secondary: rgba(226, 232, 240, 0.55);
+  --text-muted:     rgba(226, 232, 240, 0.28);
+  --text-accent:    #60a5fa;
+
+  --accent:         #2563eb;
+  --accent-hover:   #1d4ed8;
+  --accent-glow:    rgba(37, 99, 235, 0.25);
+  --accent-text:    #ffffff;
+
+  --scrollbar:      rgba(37, 99, 235, 0.3);
+  --scrollbar-hover:rgba(37, 99, 235, 0.6);
+
+  --shadow-card:    0 8px 32px rgba(0, 0, 0, 0.6);
+  --shadow-bubble:  0 4px 20px rgba(37, 99, 235, 0.2);
+}
+
+/* ── Light ──────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg-app:         #f0f2f5;
+  --bg-sidebar:     rgba(255, 255, 255, 0.92);
+  --bg-chat:        #e9eef3;
+  --bg-bubble-me:   linear-gradient(135deg, #7c3aed, #9333ea);
+  --bg-bubble-them: #ffffff;
+  --bg-input:       #ffffff;
+  --bg-card:        rgba(255, 255, 255, 0.8);
+  --bg-hover:       rgba(0, 0, 0, 0.04);
+  --bg-active:      rgba(124, 58, 237, 0.1);
+  --bg-modal:       #ffffff;
+  --bg-panel:       rgba(240, 242, 245, 0.98);
+
+  --border-primary: rgba(0, 0, 0, 0.14);
+  --border-active:  rgba(124, 58, 237, 0.4);
+  --border-input:   rgba(0, 0, 0, 0.14);
+
+  --text-primary:   #111827;
+  --text-secondary: rgba(17, 24, 39, 0.6);
+  --text-muted:     rgba(17, 24, 39, 0.45);
+  --text-accent:    #7c3aed;
+
+  --accent:         #7c3aed;
+  --accent-hover:   #6d28d9;
+  --accent-glow:    rgba(124, 58, 237, 0.15);
+  --accent-text:    #ffffff;
+
+  --bubble-me-text: rgba(255, 255, 255, 0.95);
+
+  --scrollbar:      rgba(124, 58, 237, 0.25);
+  --scrollbar-hover:rgba(124, 58, 237, 0.5);
+
+  --shadow-card:    0 2px 12px rgba(0, 0, 0, 0.08);
+  --shadow-bubble:  0 2px 8px rgba(0, 0, 0, 0.1);
+  --backdrop:       blur(16px);
+}
+
+/* ── Warm Light ─────────────────────────────────────────────────────── */
+[data-theme="warm-light"] {
+  --bg-app:         #fdf6ec;
+  --bg-sidebar:     rgba(255, 250, 240, 0.95);
+  --bg-chat:        #f5efe6;
+  --bg-bubble-me:   linear-gradient(135deg, #d97706, #b45309);
+  --bg-bubble-them: #ffffff;
+  --bg-input:       #ffffff;
+  --bg-card:        rgba(255, 255, 255, 0.7);
+  --bg-hover:       rgba(0, 0, 0, 0.04);
+  --bg-active:      rgba(217, 119, 6, 0.1);
+  --bg-modal:       #fffbf4;
+  --bg-panel:       rgba(253, 246, 236, 0.98);
+
+  --border-primary: rgba(0, 0, 0, 0.12);
+  --border-active:  rgba(217, 119, 6, 0.4);
+  --border-input:   rgba(0, 0, 0, 0.12);
+
+  --text-primary:   #1c0a00;
+  --text-secondary: rgba(28, 10, 0, 0.6);
+  --text-muted:     rgba(28, 10, 0, 0.45);
+  --text-accent:    #d97706;
+
+  --accent:         #d97706;
+  --accent-hover:   #b45309;
+  --accent-glow:    rgba(217, 119, 6, 0.2);
+  --accent-text:    #ffffff;
+
+  --bubble-me-text: rgba(255, 255, 255, 0.95);
+
+  --scrollbar:      rgba(217, 119, 6, 0.3);
+  --scrollbar-hover:rgba(217, 119, 6, 0.6);
+
+  --shadow-card:    0 2px 12px rgba(0, 0, 0, 0.06);
+  --shadow-bubble:  0 2px 8px rgba(0, 0, 0, 0.08);
+  --backdrop:       blur(16px);
+}
+
+/* ── Layout: Compact ─────────────────────────────────────────────────── */
+[data-layout="compact"] .msg-bubble {
+  padding: 6px 12px !important;
+  border-radius: 12px !important;
+}
+[data-layout="compact"] .msg-text {
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+}
+[data-layout="compact"] .msg-wrapper {
+  margin-bottom: 2px !important;
+}
+
+/* ── Layout: Bubble ──────────────────────────────────────────────────── */
+[data-layout="bubble"] .msg-bubble {
+  padding: 14px 20px !important;
+  border-radius: 28px !important;
+}
+[data-layout="bubble"] .msg-bubble-me {
+  border-bottom-right-radius: 6px !important;
+}
+[data-layout="bubble"] .msg-bubble-them {
+  border-bottom-left-radius: 6px !important;
+}
+[data-layout="bubble"] .msg-text {
+  font-size: 15px !important;
+  line-height: 1.7 !important;
+}
+[data-layout="bubble"] .msg-wrapper {
+  margin-bottom: 8px !important;
+}
+
+/* ── Monochrome (Pure Black & White) ──────────────────────────────── */
+[data-theme="monochrome"] {
+  --bg-app:         #000000;
+  --bg-sidebar:     rgba(10, 10, 10, 0.95);
+  --bg-chat:        #0a0a0a;
+  --bg-bubble-me:   linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  --bg-bubble-them: rgba(255, 255, 255, 0.08);
+  --bg-input:       rgba(255, 255, 255, 0.06);
+  --bg-card:        rgba(255, 255, 255, 0.04);
+  --bg-hover:       rgba(255, 255, 255, 0.08);
+  --bg-active:      rgba(255, 255, 255, 0.15);
+  --bg-modal:       #111111;
+  --bg-panel:       rgba(5, 5, 5, 0.97);
+
+  --border-primary: rgba(255, 255, 255, 0.18);
+  --border-active:  rgba(255, 255, 255, 0.6);
+  --border-input:   rgba(255, 255, 255, 0.18);
+
+  --text-primary:   #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.65);
+  --text-muted:     rgba(255, 255, 255, 0.38);
+  --text-accent:    #ffffff;
+
+  /* Monochrome uses a visible grey accent so buttons are never invisible-white */
+  --accent:         #e0e0e0;
+  --accent-hover:   #c8c8c8;
+  --accent-glow:    rgba(255, 255, 255, 0.12);
+  /* Dark text on light grey button */
+  --accent-text:    #000000;
+
+  /* Dark grey bubble → white text */
+  --bubble-me-text: rgba(255, 255, 255, 0.92);
+
+  --scrollbar:      rgba(255, 255, 255, 0.2);
+  --scrollbar-hover:rgba(255, 255, 255, 0.4);
+
+  --shadow-card:    0 8px 32px rgba(0, 0, 0, 0.8);
+  --shadow-bubble:  0 4px 20px rgba(255, 255, 255, 0.08);
+  --backdrop:       blur(20px);
+}
+
+/* ── Inverted (Pure White & Black) ─────────────────────────────────── */
+[data-theme="inverted"] {
+  --bg-app:         #ffffff;
+  --bg-sidebar:     rgba(245, 245, 245, 0.98);
+  --bg-chat:        #f5f5f5;
+  --bg-bubble-me:   linear-gradient(135deg, #000000, #1a1a1a);
+  --bg-bubble-them: #e8e8e8;
+  --bg-input:       #ffffff;
+  --bg-card:        rgba(0, 0, 0, 0.04);
+  --bg-hover:       rgba(0, 0, 0, 0.06);
+  --bg-active:      rgba(0, 0, 0, 0.10);
+  --bg-modal:       #ffffff;
+  --bg-panel:       rgba(250, 250, 250, 0.99);
+
+  --border-primary: rgba(0, 0, 0, 0.15);
+  --border-active:  rgba(0, 0, 0, 0.55);
+  --border-input:   rgba(0, 0, 0, 0.18);
+
+  --text-primary:   #000000;
+  --text-secondary: rgba(0, 0, 0, 0.6);
+  --text-muted:     rgba(0, 0, 0, 0.42);
+  --text-accent:    #000000;
+
+  --accent:         #000000;
+  --accent-hover:   #1a1a1a;
+  --accent-glow:    rgba(0, 0, 0, 0.12);
+  /* White text on black button */
+  --accent-text:    #ffffff;
+
+  /* Black bubble → needs white text */
+  --bubble-me-text: rgba(255, 255, 255, 0.92);
+
+  --scrollbar:      rgba(0, 0, 0, 0.18);
+  --scrollbar-hover:rgba(0, 0, 0, 0.35);
+
+  --shadow-card:    0 2px 12px rgba(0, 0, 0, 0.10);
+  --shadow-bubble:  0 2px 8px rgba(0, 0, 0, 0.08);
+  --backdrop:       blur(16px);
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar, rgba(124,58,237,0.3));
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-hover, rgba(124,58,237,0.6));
+}

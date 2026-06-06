@@ -8,36 +8,35 @@ export default {
   theme: {
     extend: {
       colors: {
+        primary: '#4f46e5', // Indigo 600
+        primaryHover: '#4338ca', // Indigo 700
         background: {
-          dark: '#0D0F14',
-          light: '#F8FAFC',
+          light: '#f8fafc', // slate 50
+          dark: '#0a0a0a',  // neutral 950
         },
         surface: {
-          dark: '#161A22',
-          light: '#FFFFFF',
-          dark2: '#1E2330',
-          light2: '#F1F5F9',
+          light: '#ffffff', // white
+          dark: '#171717',  // neutral 900
         },
         border: {
-          dark: '#2A3144',
-          light: '#E2E8F0',
+          light: '#e2e8f0', // slate 200
+          dark: '#262626',  // neutral 800
         },
-        primary: '#6C63FF',
-        success: '#22C55E',
-        warning: '#F59E0B',
-        danger: '#EF4444',
-        info: '#3B82F6',
         text: {
-          primaryDark: '#F1F5F9',
-          secondaryDark: '#8B98B8',
-          mutedDark: '#4B5568',
-          primaryLight: '#0F172A',
-          secondaryLight: '#475569',
-          mutedLight: '#94A3B8',
-        }
+          primaryLight: '#0f172a', // slate 900
+          secondaryLight: '#64748b', // slate 500
+          primaryDark: '#f8fafc', // slate 50
+          secondaryDark: '#94a3b8', // slate 400
+        },
+        success: '#10b981',
+        danger: '#ef4444',
+        warning: '#f59e0b',
+        info: '#3b82f6',
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['"DM Sans"', 'sans-serif'],
+        display: ['Syne', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
       },
       blur: {
         xs: '2px',

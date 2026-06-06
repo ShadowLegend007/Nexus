@@ -4,7 +4,6 @@ import { Toaster } from 'react-hot-toast';
 import useAuthStore from './store/authStore';
 import useUiStore from './store/uiStore';
 import Spinner from './components/ui/Spinner';
-
 // Pages
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -19,7 +18,7 @@ const ProtectedRoute = ({ children }) => {
   
   if (loading) {
     return (
-      <div className="min-h-screen bg-background-dark flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-app)', color: 'var(--text-primary)' }}>
         <Spinner size="lg" />
       </div>
     );
@@ -56,19 +55,20 @@ export function App() {
 
   return (
     <Router>
-      <div className="min-h-screen select-none overflow-hidden transition-all duration-200">
-        
+      <div className="min-h-screen select-none transition-colors duration-200" style={{ backgroundColor: 'var(--bg-app)', color: 'var(--text-primary)' }}>
         {/* React Hot Toast Configuration */}
         <Toaster
           position="top-center"
           toastOptions={{
             style: {
-              background: '#161A22',
-              color: '#F1F5F9',
-              border: '1px solid #2A3144',
+              background: 'rgba(12, 10, 28, 0.95)',
+              color: '#f8fafc',
+              border: '1px solid rgba(255,255,255,0.08)',
+              backdropFilter: 'blur(12px)',
               borderRadius: '12px',
               fontSize: '13px',
               fontWeight: '500',
+              fontFamily: 'DM Sans, sans-serif'
             },
             success: {
               duration: 3000,

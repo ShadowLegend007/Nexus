@@ -4,22 +4,22 @@ export const useChatStore = create((set, get) => ({
   conversations: [],
   activeConversation: null,
   activeMessages: [],
-  // Map of messageId -> scanStatus metadata (scanStatus, threatType, threatConfidence, tier)
+  starredMessages: [],
   messageScanStatuses: new Map(),
-  onlineUsers: new Set(), // Set of online user hexIds
+  onlineUsers: new Set(),
+  publicKeys: {},
 
   setConversations: (conversations) => set({ conversations }),
-  
+
   setActiveConversation: (conversation) => {
-    set({ 
+    set({
       activeConversation: conversation,
-      activeMessages: [], // Reset active messages on switch
+      activeMessages: [],
     });
   },
 
   setActiveMessages: (messages) => {
     const statusMap = new Map(get().messageScanStatuses);
-    // Initialize the status map with loaded message statuses
     messages.forEach((msg) => {
       statusMap.set(msg._id, {
         scanStatus: msg.scanStatus,
@@ -28,8 +28,7 @@ export const useChatStore = create((set, get) => ({
         tier: msg.scanTier,
       });
     });
-
-    set({ 
+    set({
       activeMessages: messages,
       messageScanStatuses: statusMap,
     });
@@ -37,15 +36,10 @@ export const useChatStore = create((set, get) => ({
 
   addMessage: (message) => {
     const { activeConversation, activeMessages, messageScanStatuses } = get();
-    
-    // Only append to activeMessages if it belongs to the current conversation
     if (activeConversation && message.conversationId === activeConversation._id) {
-      // Check if message is already in list to avoid socket duplicate emissions
       const exists = activeMessages.some((msg) => msg._id === message._id);
       if (!exists) {
         const updatedMessages = [...activeMessages, message];
-        
-        // Initialize status map for the new message
         const statusMap = new Map(messageScanStatuses);
         statusMap.set(message._id, {
           scanStatus: message.scanStatus,
@@ -53,15 +47,12 @@ export const useChatStore = create((set, get) => ({
           threatConfidence: message.threatConfidence,
           tier: message.scanTier,
         });
-
-        set({ 
+        set({
           activeMessages: updatedMessages,
           messageScanStatuses: statusMap,
         });
       }
     }
-
-    // Update conversation lastMessage preview in conversations list
     set((state) => {
       const updatedConvs = state.conversations.map((conv) => {
         if (conv._id === message.conversationId) {
@@ -73,10 +64,7 @@ export const useChatStore = create((set, get) => ({
         }
         return conv;
       });
-
-      // Sort conversations so the active one goes to the top
       updatedConvs.sort((a, b) => new Date(b.lastActivity) - new Date(a.lastActivity));
-
       return { conversations: updatedConvs };
     });
   },
@@ -90,8 +78,6 @@ export const useChatStore = create((set, get) => ({
         threatConfidence: statusPayload.threatConfidence,
         tier: statusPayload.tier,
       });
-
-      // Also update isQuarantined flag if payload is MALWARE
       let updatedMessages = [...state.activeMessages];
       const msgIndex = updatedMessages.findIndex((msg) => msg._id === messageId);
       if (msgIndex !== -1) {
@@ -104,13 +90,43 @@ export const useChatStore = create((set, get) => ({
           isQuarantined: statusPayload.scanStatus === 'MALWARE',
         };
       }
-
-      return { 
+      return {
         messageScanStatuses: newMap,
         activeMessages: updatedMessages
       };
     });
   },
+
+  updateMessageAiReport: (messageId, aiReport, sharedWith) => {
+    set((state) => {
+      const updatedMessages = state.activeMessages.map((msg) => {
+        if (msg._id === messageId) {
+          return {
+            ...msg,
+            aiReport,
+            aiAnalyzed: true,
+            aiReportSharedWith: sharedWith || msg.aiReportSharedWith,
+          };
+        }
+        return msg;
+      });
+      return { activeMessages: updatedMessages };
+    });
+  },
+
+  toggleStarInStore: (messageId, starred) => {
+    set((state) => {
+      const updatedMessages = state.activeMessages.map((msg) => {
+        if (msg._id === messageId) {
+          return { ...msg, _clientStarred: starred };
+        }
+        return msg;
+      });
+      return { activeMessages: updatedMessages };
+    });
+  },
+
+  setStarredMessages: (messages) => set({ starredMessages: messages }),
 
   getMessageLiveStatus: (message) => {
     const { messageScanStatuses } = get();
@@ -128,8 +144,40 @@ export const useChatStore = create((set, get) => ({
   markMessageReadInStore: (messageId, readAt) => {
     set((state) => {
       const updatedMessages = state.activeMessages.map((msg) => {
+        if (msg._id === messageId) return { ...msg, readAt };
+        return msg;
+      });
+      const updatedConvs = state.conversations.map((conv) => {
+        if (conv.lastMessage && conv.lastMessage._id === messageId) {
+          return { ...conv, lastMessage: { ...conv.lastMessage, readAt } };
+        }
+        return conv;
+      });
+      let updatedActiveConv = state.activeConversation;
+      if (updatedActiveConv && updatedActiveConv.lastMessage && updatedActiveConv.lastMessage._id === messageId) {
+        updatedActiveConv = { ...updatedActiveConv, lastMessage: { ...updatedActiveConv.lastMessage, readAt } };
+      }
+      return { activeMessages: updatedMessages, conversations: updatedConvs, activeConversation: updatedActiveConv };
+    });
+  },
+
+  markMessageDeliveredInStore: (messageId, deliveredAt) => {
+    set((state) => {
+      const updatedMessages = state.activeMessages.map((msg) => {
+        if (msg._id === messageId) return { ...msg, deliveredAt };
+        return msg;
+      });
+      return { activeMessages: updatedMessages };
+    });
+  },
+
+  deleteMessageInStore: (messageId, isDeletedForEveryone) => {
+    set((state) => {
+      const updatedMessages = state.activeMessages.map((msg) => {
         if (msg._id === messageId) {
-          return { ...msg, readAt };
+          return isDeletedForEveryone
+            ? { ...msg, isDeletedForEveryone: true, textContent: null, fileUrl: null, fileName: null }
+            : { ...msg, deletedForMe: true };
         }
         return msg;
       });
@@ -155,7 +203,17 @@ export const useChatStore = create((set, get) => ({
       newSet.delete(hexId);
       return { onlineUsers: newSet };
     });
-  }
+  },
+
+  cachePublicKey: (hexId, publicKey) => {
+    set((state) => ({
+      publicKeys: { ...state.publicKeys, [hexId]: publicKey }
+    }));
+  },
+
+  getCachedPublicKey: (hexId) => {
+    return get().publicKeys[hexId] || null;
+  },
 }));
 
 export default useChatStore;

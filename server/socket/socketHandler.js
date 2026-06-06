@@ -31,6 +31,19 @@ function init(io) {
       } catch (err) {
         console.error('Error fetching user for online status:', err);
       }
+
+      // Mark pending messages as delivered
+      try {
+        const pendingMessages = await Message.find({ receiverId: userId, deliveredAt: null });
+        for (const msg of pendingMessages) {
+          msg.deliveredAt = new Date();
+          await msg.save();
+          const senderRoom = msg.senderId.toString();
+          io.to(senderRoom).emit('message:delivered', { messageId: msg._id, deliveredAt: msg.deliveredAt });
+        }
+      } catch (err) {
+        console.error('Delivery tracking error:', err);
+      }
     });
 
     // Handle typing events

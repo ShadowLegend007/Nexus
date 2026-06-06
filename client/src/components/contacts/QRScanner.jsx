@@ -59,19 +59,28 @@ export function QRScanner({ onScanSuccess, onScanError, onClose }) {
   }, [onScanSuccess, onScanError]);
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 bg-surface-dark2 border border-border-dark rounded-2xl w-full max-w-sm dark:bg-surface-dark2 dark:border-border-dark light:bg-surface-light2 light:border-border-light">
-      <h3 className="text-sm font-bold text-text-primaryDark mb-4 dark:text-text-primaryDark light:text-text-primaryLight flex items-center">
-        <Camera size={16} className="mr-2 text-primary" />
+    <div
+      className="flex flex-col items-center justify-center p-4 rounded-2xl w-full max-w-sm transition-colors"
+      style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)' }}
+    >
+      <h3 className="text-sm font-bold mb-4 flex items-center" style={{ color: 'var(--text-primary)' }}>
+        <Camera size={16} className="mr-2" style={{ color: 'var(--accent)' }} />
         Scan QR Code
       </h3>
 
-      <div className="relative w-full aspect-square max-w-[240px] bg-black rounded-xl overflow-hidden border border-border-dark flex items-center justify-center mb-4">
+      <div
+        className="relative w-full aspect-square max-w-[240px] bg-black rounded-xl overflow-hidden flex items-center justify-center mb-4"
+        style={{ border: '1px solid var(--border-primary)' }}
+      >
         {/* The scanner element */}
         <div id="qr-reader-element" className="absolute inset-0 w-full h-full" />
 
         {cameraPermission === 'pending' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-dark2 text-text-secondaryDark p-4 text-center">
-            <RefreshCw className="animate-spin text-primary mb-2" size={24} />
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center transition-colors"
+            style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)' }}
+          >
+            <RefreshCw className="animate-spin mb-2" size={24} style={{ color: 'var(--accent)' }} />
             <span className="text-xs">Requesting camera access...</span>
           </div>
         )}
@@ -80,7 +89,7 @@ export function QRScanner({ onScanSuccess, onScanError, onClose }) {
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-danger/10 text-danger p-4 text-center">
             <AlertCircle className="mb-2" size={28} />
             <span className="text-xs font-semibold mb-1">Camera Access Blocked</span>
-            <span className="text-[10px] text-text-secondaryDark leading-relaxed">
+            <span className="text-[10px] text-text-secondaryLight dark:text-text-secondaryDark leading-relaxed">
               Please grant camera permission in your browser settings, or enter the Hex code manually.
             </span>
           </div>

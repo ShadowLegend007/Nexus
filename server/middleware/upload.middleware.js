@@ -1,8 +1,6 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const { cloudinary, isCloudinaryConfigured } = require('../config/cloudinary');
 
 // Ensure local uploads directory exists
 const localUploadsDir = path.join(__dirname, '../public/uploads');
@@ -34,29 +32,15 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-let storage;
-
-if (isCloudinaryConfigured) {
-  storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-      folder: 'securechat_uploads',
-      resource_type: 'auto',
-      allowed_formats: ['jpg', 'png', 'gif', 'webp', 'mp4', 'mov', 'webm', 'mp3', 'wav', 'ogg', 'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt'],
-    },
-  });
-} else {
-  // Local storage fallback
-  storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, localUploadsDir);
-    },
-    filename: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-    },
-  });
-}
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, localUploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  },
+});
 
 const upload = multer({
   storage: storage,

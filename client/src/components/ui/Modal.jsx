@@ -23,24 +23,41 @@ export function Modal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-fade-in"
+      style={{ backgroundColor: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}
+      onClick={onClose}
+    >
       {/* Modal Dialog Card */}
-      <div 
-        className={`w-full ${maxWidth} rounded-2xl border bg-surface-dark border-border-dark dark:bg-surface-dark dark:border-border-dark light:bg-surface-light light:border-border-light shadow-2xl relative overflow-hidden transform scale-100 transition-all duration-300`}
+      <div
+        className={`w-full ${maxWidth} rounded-2xl shadow-2xl relative overflow-hidden`}
+        style={{
+          background: 'var(--bg-modal)',
+          border: '1px solid var(--border-primary)',
+          color: 'var(--text-primary)',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border-dark dark:border-border-dark light:border-border-light">
-          <h3 className="text-lg font-bold text-text-primaryDark dark:text-text-primaryDark light:text-text-primaryLight">
-            {title}
-          </h3>
-          <button 
-            onClick={onClose} 
-            className="p-1.5 rounded-lg hover:bg-surface-dark2 hover:text-text-primaryDark dark:hover:bg-surface-dark2 dark:hover:text-text-primaryDark light:hover:bg-surface-light2 light:hover:text-text-primaryLight text-text-secondaryDark transition-colors"
+        {title && (
+          <div
+            className="flex items-center justify-between px-6 py-4"
+            style={{ borderBottom: '1px solid var(--border-primary)' }}
           >
-            <X size={18} />
-          </button>
-        </div>
+            <h3 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>
+              {title}
+            </h3>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg transition-colors"
+              style={{ color: 'var(--text-muted)' }}
+              onMouseOver={e => e.currentTarget.style.background = 'var(--bg-hover)'}
+              onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <X size={18} />
+            </button>
+          </div>
+        )}
 
         {/* Body content */}
         <div className="p-6 overflow-y-auto max-h-[80vh]">

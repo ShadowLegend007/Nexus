@@ -11,6 +11,8 @@ export function useSocket() {
     addMessage, 
     updateMessageStatus, 
     markMessageReadInStore, 
+    markMessageDeliveredInStore,
+    deleteMessageInStore,
     addUserOnline, 
     removeUserOffline 
   } = useChatStore();
@@ -25,7 +27,7 @@ export function useSocket() {
       return;
     }
 
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+    const socketUrl = import.meta.env.VITE_SOCKET_URL ? import.meta.env.VITE_SOCKET_URL.replace('localhost', window.location.hostname) : `http://${window.location.hostname}:5000`;
     
     // Connect to Socket.io gateway
     const socket = io(socketUrl, {
@@ -56,6 +58,16 @@ export function useSocket() {
       markMessageReadInStore(messageId, readAt);
     });
 
+    // Handle delivery receipts
+    socket.on('message:delivered', ({ messageId, deliveredAt }) => {
+      markMessageDeliveredInStore(messageId, deliveredAt);
+    });
+
+    // Handle message deletion
+    socket.on('message:delete', ({ messageId, isDeletedForEveryone }) => {
+      deleteMessageInStore(messageId, isDeletedForEveryone);
+    });
+
     // Handle typing indicators
     socket.on('typing:start', ({ senderHexId, conversationId }) => {
       setTyping(conversationId, senderHexId, true);
@@ -79,7 +91,7 @@ export function useSocket() {
         socket.disconnect();
       }
     };
-  }, [isAuthenticated, user, addMessage, updateMessageStatus, markMessageReadInStore, addUserOnline, removeUserOffline, setTyping]);
+  }, [isAuthenticated, user, addMessage, updateMessageStatus, markMessageReadInStore, markMessageDeliveredInStore, deleteMessageInStore, addUserOnline, removeUserOffline, setTyping]);
 
   return socketRef.current;
 }

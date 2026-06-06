@@ -1,21 +1,29 @@
 {
-  "name": "securechat-client",
+  "name": "nexus-client",
   "version": "1.0.0",
-  "description": "React + Vite frontend for SecureChat",
+  "description": "React + Vite frontend for Nexus",
   "main": "index.html",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview"
   },
   "author": "Subhodeep",
   "license": "MIT",
   "dependencies": {
+    "@gsap/react": "^2.1.2",
     "@headlessui/react": "^1.7.17",
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
+    "@studio-freight/lenis": "^1.0.42",
     "axios": "^1.7.2",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.40.0",
+    "gsap": "^3.15.0",
     "html5-qrcode": "^2.3.8",
     "lucide-react": "^1.17.0",
+    "motion": "^12.40.0",
+    "puppeteer": "^25.1.0",
     "qrcode.react": "^4.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -24,6 +32,7 @@
     "react-router-dom": "^6.23.1",
     "socket.io-client": "^4.7.5",
     "tailwind-merge": "^3.6.0",
+    "three": "^0.184.0",
     "zustand": "^4.5.4"
   },
   "devDependencies": {

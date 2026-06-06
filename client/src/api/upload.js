@@ -8,7 +8,7 @@ import API from './api';
  */
 export const uploadFile = async (file, onUploadProgress) => {
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append('file', file, file.name || 'upload.png');
 
   const response = await API.post('/api/upload', formData, {
     headers: {

@@ -1,318 +1,346 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import useChatStore from '../store/chatStore';
 import useUiStore from '../store/uiStore';
 import useSocket from '../hooks/useSocket';
-import { getConversations, startConversation } from '../api/conversations';
+import { getConversations } from '../api/conversations';
+import { getOrCreateKeyPair } from '../utils/crypto';
+import { storePublicKey } from '../api/auth';
 import ChatWindow from '../components/chat/ChatWindow';
-import ContactList from '../components/contacts/ContactList';
-import Avatar from '../components/ui/Avatar';
+import UICustomizerPanel from '../components/ui/UICustomizerPanel';
+import { AvatarRing } from '../components/ui/AvatarRing';
 import Spinner from '../components/ui/Spinner';
+import { Modal } from '../components/ui/Modal';
+import HexCodeCard from '../components/profile/HexCodeCard';
 import { formatHexId } from '../utils/hexGenerator';
-import { 
-  Shield, LogOut, Settings, UserPlus, Search, 
-  Moon, Sun, Radio, MessageSquare, AlertCircle 
+import {
+  UserPlus, Search,
+  QrCode, Palette, Radio, MoreVertical, Settings
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export function ChatPage() {
-  const { user, logout } = useAuthStore();
-  const { conversations, setConversations, activeConversation, setActiveConversation, onlineUsers, setOnlineUsers } = useChatStore();
-  const { theme, toggleTheme, initTheme } = useUiStore();
+  const { user } = useAuthStore();
+  const {
+    conversations, setConversations, activeConversation,
+    setActiveConversation, onlineUsers,
+  } = useChatStore();
+  const {
+    initTheme, chatBg, customBgUrl, sidebarTab, setSidebarTab,
+  } = useUiStore();
+
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('chats'); // 'chats' | 'contacts'
+  const [showMyQR, setShowMyQR] = useState(false);
+  const [showCustomizer, setShowCustomizer] = useState(false);
+  const [sidebarMenuOpen, setSidebarMenuOpen] = useState(false);
+  const sidebarMenuRef = useRef(null);
   const navigate = useNavigate();
-
-  // Instantiate the background Socket connection hook
   const socket = useSocket();
 
   useEffect(() => {
+    const handleClick = (e) => {
+      if (sidebarMenuRef.current && !sidebarMenuRef.current.contains(e.target)) {
+        setSidebarMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  // Handle hardware back button logic for mobile chat
+  useEffect(() => {
+    const handlePopState = (e) => {
+      if (activeConversation) {
+        setActiveConversation(null);
+      }
+    };
+    if (activeConversation) {
+      window.history.pushState({ chatOpen: true }, '');
+    }
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [activeConversation, setActiveConversation]);
+
+  // Init theme + E2EE on mount
+  useEffect(() => {
     initTheme();
-    
-    const fetchConversationsList = async () => {
+    const initE2EE = async () => {
+      try {
+        const keyPair = await getOrCreateKeyPair();
+        await storePublicKey(keyPair.publicKey, null).catch(() => {});
+      } catch (err) {
+        console.warn('[E2EE] Key init failed:', err.message);
+      }
+    };
+    initE2EE();
+  }, []);
+
+  useEffect(() => {
+    const fetchConversations = async () => {
       setLoading(true);
       try {
         const list = await getConversations();
         setConversations(list);
-
-        // Map initial active user list from online list
-        // Note: Socket triggers online/offline status pushes dynamically.
-        // We initialize the list by parsing participants of conversations
-        // who might be active, or wait for socket indicators.
-      } catch (err) {
-        toast.error('Failed to load conversation logs.');
+      } catch {
+        toast.error('Failed to load conversations.');
       } finally {
         setLoading(false);
       }
     };
-
-    fetchConversationsList();
+    fetchConversations();
   }, [setConversations]);
-
-  const handleLogout = () => {
-    logout();
-    toast.success('Logged out successfully.');
-    navigate('/login');
-  };
 
   const handleSelectConversation = (conv) => {
     setActiveConversation(conv);
+    setShowCustomizer(false); // Close customizer when switching chat
   };
 
-  const handleStartSelfChat = async () => {
-    if (!user || !user.hexId) return;
-    try {
-      const conv = await startConversation(user.hexId);
-      setActiveConversation(conv);
-      const list = await getConversations();
-      setConversations(list);
-      setActiveTab('chats');
-      toast.success('Opened Saved Messages (Notes) room! 📝');
-    } catch (err) {
-      toast.error('Failed to open Saved Messages room.');
-    }
-  };
-
-  // Filter conversations by partner's username or Hex ID
   const filteredConversations = conversations.filter((conv) => {
-    const partner = conv.participants.find((p) => (p._id || p) !== user?._id);
+    const partner = conv.participants.find((p) => (p._id || p) !== user?._id) || conv.participants[0];
     if (!partner) return false;
-
-    const query = searchQuery.toLowerCase();
-    return (
-      partner.username.toLowerCase().includes(query) ||
-      partner.hexId.toLowerCase().includes(query)
-    );
+    const q = searchQuery.toLowerCase();
+    return partner.username?.toLowerCase().includes(q) || partner.hexId?.toLowerCase().includes(q);
   });
 
-  // Calculate unread badge count preview
   const getUnreadCount = (conv) => {
-    // Unread logic can be mapped here: if lastMessage readAt is null and sender isn't me
     if (
-      conv.lastMessage && 
-      !conv.lastMessage.readAt && 
+      conv.lastMessage &&
+      !conv.lastMessage.readAt &&
       conv.lastMessage.senderId !== user?._id &&
       conv.lastMessage.senderId?._id !== user?._id
-    ) {
-      return 1;
-    }
+    ) return 1;
     return 0;
   };
 
   const formatLastActivity = (dateStr) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
+    const diff = Date.now() - date;
+    if (diff < 86400000) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
   };
 
   const renderConversationItem = (conv) => {
-    const partner = conv.participants.find((p) => (p._id || p) !== user?._id);
+    const isSelfConv = conv.participants.every(
+      (p) => (p._id || p).toString() === user?._id?.toString()
+    );
+    const partner = isSelfConv
+      ? conv.participants[0]
+      : conv.participants.find((p) => (p._id || p).toString() !== user?._id?.toString());
     if (!partner) return null;
 
     const isSelected = activeConversation?._id === conv._id;
     const isOnline = onlineUsers.has(partner.hexId);
     const unread = getUnreadCount(conv);
-    
-    // Formatting preview snippet
-    const lastMsg = conv.lastMessage;
+
     let snippet = 'No messages yet';
+    const lastMsg = conv.lastMessage;
     if (lastMsg) {
-      if (lastMsg.isQuarantined) {
-        snippet = '🚫 Quarantined message';
-      } else if (lastMsg.contentType === 'text') {
-        snippet = lastMsg.textContent;
-      } else {
-        snippet = `📎 Attachment [${lastMsg.contentType}]`;
-      }
+      if (lastMsg.isQuarantined) snippet = '🚫 Quarantined';
+      else if (lastMsg.contentType === 'text') snippet = lastMsg.textContent || '';
+      else snippet = `📎 ${lastMsg.contentType || 'File'}`;
     }
+
+    const displayName = isSelfConv ? `${partner.username} (You)` : partner.username;
 
     return (
       <div
         key={conv._id}
         onClick={() => handleSelectConversation(conv)}
-        className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all duration-200 cursor-pointer ${
-          isSelected 
-            ? 'bg-primary text-white border-primary shadow-lg shadow-primary/10' 
-            : 'bg-surface-dark2/45 hover:bg-surface-dark2 border-border-dark dark:bg-surface-dark2/45 dark:hover:bg-surface-dark2 dark:border-border-dark light:bg-surface-light2/45 light:hover:bg-surface-light2 light:border-border-light'
-        }`}
+        className="flex items-center gap-3 px-3 py-3 rounded-xl cursor-pointer transition-all duration-150"
+        style={{
+          background: isSelected ? 'var(--bg-active)' : 'transparent',
+          border: isSelected ? '1px solid var(--border-active)' : '1px solid transparent',
+        }}
+        onMouseOver={e => { if (!isSelected) e.currentTarget.style.background = 'var(--bg-hover)'; }}
+        onMouseOut={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
       >
-        <div className="flex items-center space-x-3 overflow-hidden text-left">
-          <Avatar 
-            src={partner.avatar} 
-            name={partner.username} 
-            status={isOnline ? 'online' : 'offline'}
-            size="md" 
-          />
-          <div className="overflow-hidden">
-            <div className="flex items-center space-x-1.5">
-              <span className={`text-sm font-bold truncate ${isSelected ? 'text-white' : 'text-text-primaryDark dark:text-text-primaryDark light:text-text-primaryLight'}`}>
-                {partner.username}
-              </span>
-            </div>
-            
-            <p className={`text-xs truncate max-w-[150px] ${isSelected ? 'text-white/80' : 'text-text-secondaryDark font-medium'}`}>
-              {snippet}
-            </p>
-          </div>
+        <div className="relative flex-shrink-0">
+          <AvatarRing src={partner.avatar} name={partner.username} isOnline={isOnline} size="md" />
         </div>
-
-        <div className="flex flex-col items-end justify-between h-9 flex-shrink-0 text-right">
-          <span className={`text-[10px] ${isSelected ? 'text-white/70' : 'text-text-secondaryDark'}`}>
-            {formatLastActivity(conv.lastActivity)}
-          </span>
-          
-          {unread > 0 && (
-            <span className={`inline-flex items-center justify-center min-w-4 h-4 rounded-full text-[9px] font-black px-1.5 ${
-              isSelected ? 'bg-white text-primary' : 'bg-primary text-white'
-            }`}>
-              {unread}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-0.5">
+            <span className="text-sm font-bold truncate" style={{ color: 'var(--text-primary)' }}>
+              {displayName}
             </span>
-          )}
+            <span className="text-[10px] flex-shrink-0 ml-2" style={{ color: 'var(--text-muted)' }}>
+              {formatLastActivity(conv.lastActivity)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="text-[12px] truncate max-w-[150px]" style={{ color: 'var(--text-muted)' }}>{snippet}</p>
+            {unread > 0 && (
+              <span
+                className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[9px] font-black px-1 ml-2 flex-shrink-0 text-white"
+                style={{ background: 'var(--accent)' }}
+              >
+                {unread}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="flex h-screen bg-background-dark text-text-primaryDark overflow-hidden font-sans dark:bg-background-dark dark:text-text-primaryDark light:bg-background-light light:text-text-primaryLight animate-fade-in">
-      {/* 1. LEFT SIDEBAR PANEL */}
-      <aside className={`${activeConversation ? 'hidden md:flex' : 'flex'} w-full md:w-[350px] h-full flex flex-col border-r border-border-dark bg-surface-dark/95 backdrop-blur dark:border-border-dark dark:bg-surface-dark/95 light:border-border-light light:bg-surface-light/95 flex-shrink-0 z-20`}>
-        
-        {/* User Summary Header */}
-        <div className="p-4 border-b border-border-dark flex items-center justify-between dark:border-border-dark light:border-border-light bg-surface-dark dark:bg-surface-dark light:bg-surface-light">
-          <div className="flex items-center space-x-3 cursor-pointer text-left" onClick={() => navigate('/profile')}>
-            <Avatar src={user?.avatar} name={user?.username} size="sm" className="border border-primary/45" />
-            <div className="overflow-hidden">
-              <h4 className="text-xs font-black tracking-tight text-text-primaryDark truncate w-24 dark:text-text-primaryDark light:text-text-primaryLight">
+    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: 'var(--bg-app)' }}>
+      {/* Background overlay for readability */}
+      <div className="absolute inset-0 pointer-events-none z-0" style={{ backgroundColor: 'rgba(0,0,0,0.15)' }} />
+
+      {/* ── LEFT SIDEBAR ───────────────────────────────────────────── */}
+      <aside
+        className={`${activeConversation ? 'hidden md:flex' : 'flex'} relative z-10 w-full md:w-[320px] lg:w-[360px] xl:w-[380px] h-full flex-col flex-shrink-0`}
+        style={{
+          background: 'var(--bg-sidebar)',
+          backdropFilter: 'var(--backdrop)',
+          borderRight: '1px solid var(--border-primary)',
+        }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 h-[60px] min-h-[60px] flex-shrink-0">
+          <div
+            className="flex items-center gap-3 cursor-pointer group"
+            onClick={() => navigate('/profile', { replace: true })}
+          >
+            <AvatarRing src={user?.avatar} name={user?.username} size="md" />
+            <div>
+              <h4 className="text-sm font-bold transition-colors group-hover:opacity-80" style={{ color: 'var(--text-primary)' }}>
                 {user?.username || 'Guest'}
               </h4>
-              <span className="font-mono text-[9px] text-text-secondaryDark block truncate w-24">
+              <span className="font-mono text-[9px] block" style={{ color: 'var(--text-muted)' }}>
                 {formatHexId(user?.hexId)}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center space-x-1.5">
-            <button 
-              onClick={toggleTheme}
-              className="p-2 rounded-lg bg-surface-dark2 border border-border-dark hover:bg-border-dark text-text-secondaryDark hover:text-primary dark:bg-surface-dark2 dark:border-border-dark light:bg-surface-light2 light:border-border-light transition-all outline-none"
+          <div className="flex items-center gap-0.5 relative" ref={sidebarMenuRef}>
+            <button
+              onClick={() => setSidebarMenuOpen(!sidebarMenuOpen)}
+              className="p-2 rounded-xl transition-all"
+              style={{ color: 'var(--text-muted)' }}
+              onMouseOver={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+              onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
             >
-              {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+              <MoreVertical size={16} />
             </button>
             
-            <button 
-              onClick={() => navigate('/profile')}
-              className="p-2 rounded-lg bg-surface-dark2 border border-border-dark hover:bg-border-dark text-text-secondaryDark hover:text-primary dark:bg-surface-dark2 dark:border-border-dark light:bg-surface-light2 light:border-border-light transition-all outline-none"
-            >
-              <Settings size={14} />
-            </button>
-
-            <button 
-              onClick={handleLogout}
-              className="p-2 rounded-lg bg-surface-dark2 border border-border-dark hover:bg-danger/10 text-text-secondaryDark hover:text-danger dark:bg-surface-dark2 dark:border-border-dark light:bg-surface-light2 light:border-border-light transition-all outline-none"
-            >
-              <LogOut size={14} />
-            </button>
+            {sidebarMenuOpen && (
+              <div
+                className="absolute top-full right-0 mt-2 w-44 rounded-2xl shadow-xl z-50 overflow-hidden animate-fade-in"
+                style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-primary)' }}
+              >
+                <button
+                  onClick={() => { setShowMyQR(true); setSidebarMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold transition-colors text-left"
+                  style={{ color: 'var(--text-primary)' }}
+                  onMouseOver={e => e.currentTarget.style.background = 'var(--bg-hover)'}
+                  onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <QrCode size={14} style={{ color: 'var(--accent)' }} />
+                  My QR Code
+                </button>
+                <div className="h-px" style={{ background: 'var(--border-primary)' }} />
+                <button
+                  onClick={() => { setShowCustomizer(v => !v); setSidebarMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold transition-colors text-left"
+                  style={{ color: 'var(--text-primary)' }}
+                  onMouseOver={e => e.currentTarget.style.background = 'var(--bg-hover)'}
+                  onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <Palette size={14} style={{ color: 'var(--accent)' }} />
+                  Customize UI
+                </button>
+                <div className="h-px" style={{ background: 'var(--border-primary)' }} />
+                <button
+                  onClick={() => { navigate('/profile', { replace: true }); setSidebarMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold transition-colors text-left"
+                  style={{ color: 'var(--text-primary)' }}
+                  onMouseOver={e => e.currentTarget.style.background = 'var(--bg-hover)'}
+                  onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <Settings size={14} style={{ color: 'var(--accent)' }} />
+                  Settings
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Search & Add contacts composition bar */}
-        <div className="p-4 pb-2 space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold text-text-secondaryDark uppercase tracking-wider flex items-center">
-              <MessageSquare size={14} className="mr-1.5" />
-              Secure Rooms
-            </h3>
-            
-            <div className="flex items-center space-x-2">
-              <button 
-                onClick={handleStartSelfChat}
-                className="flex items-center space-x-0.5 text-xs font-bold text-primary hover:underline outline-none"
-                title="Message yourself / Save notes"
-              >
-                <span>Notes</span>
-              </button>
-              <span className="text-text-mutedDark text-[10px]">|</span>
-              <button 
-                onClick={() => navigate('/add-contact')}
-                className="flex items-center space-x-0.5 text-xs font-bold text-primary hover:underline outline-none"
-              >
-                <UserPlus size={12} className="mr-0.5" />
-                <span>Add</span>
-              </button>
-            </div>
-          </div>
 
+
+        {/* Search */}
+        <div className="px-4 py-3">
           <div className="relative">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
             <input
               type="text"
-              placeholder={activeTab === 'chats' ? "Search chatrooms..." : "Search contacts..."}
+              placeholder="Search chats…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-surface-dark2 border border-border-dark text-text-primaryDark rounded-xl pl-10 pr-4 py-2 text-xs focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none transition-all dark:bg-surface-dark2 dark:border-border-dark dark:text-text-primaryDark light:bg-surface-light2 light:border-border-light light:text-text-primaryLight"
+              className="w-full rounded-xl pl-9 pr-4 py-2 text-xs outline-none transition-all"
+              style={{
+                background: 'var(--bg-input)',
+                border: '1px solid var(--border-input)',
+                color: 'var(--text-primary)',
+              }}
             />
-            <Search size={14} className="absolute left-3.5 top-2.5 text-text-secondaryDark" />
           </div>
         </div>
 
-        {/* Tab switch switcher */}
-        <div className="px-4 pb-2 border-b border-border-dark dark:border-border-dark light:border-border-light flex gap-4 bg-surface-dark/40 dark:bg-surface-dark/40 light:bg-surface-light/40">
-          <button 
-            onClick={() => setActiveTab('chats')}
-            className={`pb-1 text-[11px] font-black uppercase tracking-wider border-b-2 outline-none transition-all ${
-              activeTab === 'chats' 
-                ? 'border-primary text-primary' 
-                : 'border-transparent text-text-secondaryDark hover:text-text-primaryDark'
-            }`}
-          >
-            Chats
-          </button>
-          <button 
-            onClick={() => setActiveTab('contacts')}
-            className={`pb-1 text-[11px] font-black uppercase tracking-wider border-b-2 outline-none transition-all ${
-              activeTab === 'contacts' 
-                ? 'border-primary text-primary' 
-                : 'border-transparent text-text-secondaryDark hover:text-text-primaryDark'
-            }`}
-          >
-            Contacts
-          </button>
-        </div>
-
-        {/* Conversation / Contact List logs */}
-        <div className="flex-1 overflow-y-auto px-4 pb-4 pt-3 space-y-2">
-          {activeTab === 'chats' ? (
-            loading ? (
-              <Spinner size="md" className="py-24" />
-            ) : filteredConversations.length === 0 ? (
-              <div className="text-center py-24 space-y-4">
-                <Radio size={36} className="mx-auto text-text-mutedDark pulse-primary" />
-                <div className="text-xs text-text-secondaryDark leading-relaxed px-6">
-                  No active secure rooms found. Switch to the Contacts tab or add a contact to open a session!
-                </div>
-              </div>
-            ) : (
-              filteredConversations.map(renderConversationItem)
-            )
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto">
+          {showCustomizer ? (
+            <UICustomizerPanel onClose={() => setShowCustomizer(false)} />
           ) : (
-            <ContactList 
-              onSelectContact={(conv) => {
-                // Switch back to chats tab and fetch updated list
-                setActiveTab('chats');
-                getConversations().then(list => setConversations(list));
-              }}
-              onOpenAddContact={() => navigate('/add-contact')}
-            />
+            <div className="px-2 pb-4 space-y-0.5">
+              {/* Conversations header */}
+              <div className="flex items-center justify-between px-2 py-2">
+                <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+                  Conversations
+                </span>
+                <button
+                  onClick={() => navigate('/add-contact')}
+                  className="flex items-center gap-1 text-[11px] font-bold transition-colors"
+                  style={{ color: 'var(--text-accent)' }}
+                  onMouseOver={e => e.currentTarget.style.opacity = '0.75'}
+                  onMouseOut={e => e.currentTarget.style.opacity = '1'}
+                >
+                  <UserPlus size={12} />
+                  New
+                </button>
+              </div>
+
+              {loading ? (
+                <Spinner size="md" className="py-24" />
+              ) : filteredConversations.length === 0 ? (
+                <div className="text-center py-16 space-y-3">
+                  <Radio size={32} className="mx-auto" style={{ color: 'var(--text-muted)' }} />
+                  <p className="text-xs leading-relaxed px-6" style={{ color: 'var(--text-muted)' }}>
+                    No chats yet. Click &quot;New&quot; to start a secure conversation!
+                  </p>
+                </div>
+              ) : (
+                filteredConversations.map(renderConversationItem)
+              )}
+            </div>
           )}
         </div>
       </aside>
 
-      {/* 2. RIGHT CHAT WINDOW FRAME */}
-      <main className={`${activeConversation ? 'flex' : 'hidden md:flex'} flex-1 h-full`}>
+      {/* ── RIGHT CHAT AREA ─────────────────────────────────────── */}
+      <main className={`${!activeConversation ? 'hidden md:flex' : 'flex'} relative z-10 flex-1 h-full overflow-hidden`}>
         <ChatWindow socket={socket} />
       </main>
+
+      {/* My QR Modal */}
+      <Modal isOpen={showMyQR} onClose={() => setShowMyQR(false)} title="Your Identity">
+        <div className="flex justify-center">
+          <HexCodeCard hexId={user?.hexId} username={user?.username} />
+        </div>
+      </Modal>
     </div>
   );
 }

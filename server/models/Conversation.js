@@ -15,6 +15,11 @@ const ConversationSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
+  aiAnalysisSettings: {
+    type: Map,
+    of: Boolean,
+    default: {}
+  },
   createdAt: {
     type: Date,
     default: Date.now

@@ -7,7 +7,7 @@ export function DeepScanIndicator() {
       <Shield size={16} className="text-warning animate-pulse" />
       <div className="flex-1 space-y-1">
         <div className="text-[11px] font-semibold text-warning">🔬 Deep scan in progress...</div>
-        <div className="w-full bg-surface-dark2 h-1 rounded-full overflow-hidden">
+        <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: 'var(--bg-input)' }}>
           <div className="bg-warning h-full rounded-full animate-infinite-progress" style={{ width: '40%' }} />
         </div>
       </div>

@@ -39,10 +39,32 @@ const startConversation = async (req, res) => {
       return res.status(404).json({ message: 'User not found with this Hex ID' });
     }
 
-    // Check if conversation already exists
-    let conversation = await Conversation.findOne({
-      participants: { $all: [req.user._id, otherUser._id] },
-    });
+    const isSelf = otherUser._id.toString() === req.user._id.toString();
+
+    let conversation;
+
+    if (isSelf) {
+      // Self-conversation: find one where the only participant is the user themselves
+      // We store [userId, userId] for self-chats
+      conversation = await Conversation.findOne({
+        participants: { $size: 2, $all: [req.user._id] },
+        $where: 'this.participants[0].toString() === this.participants[1].toString()'
+      });
+
+      // Fallback: use a simpler approach - find convs where user is participant and both participants are same
+      if (!conversation) {
+        const selfConvs = await Conversation.find({ participants: req.user._id });
+        conversation = selfConvs.find(c =>
+          c.participants.length === 2 &&
+          c.participants.every(p => p.toString() === req.user._id.toString())
+        ) || null;
+      }
+    } else {
+      // Normal conversation between two different users
+      conversation = await Conversation.findOne({
+        participants: { $all: [req.user._id, otherUser._id], $size: 2 },
+      });
+    }
 
     if (conversation) {
       conversation = await conversation.populate('participants', 'username email avatar hexId');
@@ -50,8 +72,12 @@ const startConversation = async (req, res) => {
     }
 
     // Create new conversation
+    const participantIds = isSelf
+      ? [req.user._id, req.user._id]
+      : [req.user._id, otherUser._id];
+
     conversation = await Conversation.create({
-      participants: [req.user._id, otherUser._id],
+      participants: participantIds,
     });
 
     conversation = await conversation.populate('participants', 'username email avatar hexId');

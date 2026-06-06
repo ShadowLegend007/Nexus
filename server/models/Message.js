@@ -66,6 +66,37 @@ const MessageSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  deletedForUsers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: []
+  }],
+  isDeletedForEveryone: {
+    type: Boolean,
+    default: false
+  },
+  starredBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: []
+  }],
+  encryptedContent: {
+    type: String,
+    default: null
+  },
+  aiReportSharedWith: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: []
+  }],
+  aiReport: {
+    type: Object,
+    default: null
+  },
+  aiAnalyzed: {
+    type: Boolean,
+    default: false
+  },
   createdAt: {
     type: Date,
     default: Date.now
