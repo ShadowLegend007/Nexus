@@ -76,7 +76,7 @@ export function HexCodeCard({ hexId, username }) {
             HEX-CODE IDENTITY
           </span>
           {/* Full hex in one fixed container, no overflow clip */}
-          <div className="w-full overflow-hidden px-1">
+          <div className="w-full overflow-visible px-1">
             <HexDisplay hexCode={formattedHex} className="text-xl sm:text-2xl" />
           </div>
         </div>

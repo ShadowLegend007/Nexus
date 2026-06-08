@@ -29,14 +29,8 @@ export function HexDisplay({ hexCode, className = '', animate = true }) {
 
   return (
     <div
-      className={`font-mono font-bold tracking-widest w-full text-center break-all ${className}`}
+      className={`font-mono font-bold tracking-widest w-full text-center break-all pb-1 select-all ${className}`}
       style={{
-        // Use a real color so it never clips or disappears
-        background: 'linear-gradient(90deg, var(--accent, #7c3aed), #a855f7)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text',
-        // Fallback for themes where gradient might be invisible
         color: 'var(--accent, #7c3aed)',
       }}
     >

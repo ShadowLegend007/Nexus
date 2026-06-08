@@ -29,6 +29,10 @@ const MessageSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  backupFileUrl: {
+    type: String,
+    default: null
+  },
   fileName: {
     type: String,
     default: null

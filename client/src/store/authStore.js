@@ -16,7 +16,7 @@ export const useAuthStore = create((set) => ({
       localStorage.setItem('nexus_token', data.token);
       localStorage.setItem('nexus_hexId', data.hexId);
       set({
-        user: data.user,
+        user: { ...data.user, hexId: data.hexId },
         token: data.token,
         hexId: data.hexId,
         isAuthenticated: true,
@@ -37,7 +37,7 @@ export const useAuthStore = create((set) => ({
       localStorage.setItem('nexus_token', data.token);
       localStorage.setItem('nexus_hexId', data.hexId);
       set({
-        user: data.user,
+        user: { ...data.user, hexId: data.hexId },
         token: data.token,
         hexId: data.hexId,
         isAuthenticated: true,

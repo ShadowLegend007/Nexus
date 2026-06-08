@@ -14,6 +14,7 @@ const sendMessage = async (req, res) => {
       contentType,
       textContent,
       fileUrl,
+      backupFileUrl,
       fileName,
       fileSize
     } = req.body;
@@ -43,6 +44,7 @@ const sendMessage = async (req, res) => {
       contentType,
       textContent: textContent || null,
       fileUrl: fileUrl || null,
+      backupFileUrl: backupFileUrl || null,
       fileName: fileName || null,
       fileSize: fileSize || null,
       scanStatus: 'SCANNING',
