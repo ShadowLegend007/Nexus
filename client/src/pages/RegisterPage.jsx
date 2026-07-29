@@ -3,15 +3,17 @@ import { useNavigate, Link } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import Button from '../components/ui/Button';
 import QRDisplay from '../components/contacts/QRDisplay';
-import { Radio, Mail, Lock, User, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Radio, Mail, Lock, User, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { NexusLogo } from '../components/ui/NexusLogo';
+import { BackendStatusBanner } from '../components/ui/BackendStatusBanner';
 
 export function RegisterPage() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState(null);
   
   // Track successful signup to reveal assigned hex ID before proceeding
   const [registeredHex, setRegisteredHex] = useState(null);
@@ -21,8 +23,12 @@ export function RegisterPage() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setFormError(null);
+
     if (!username || !email || !password) {
-      toast.error('Please fill in all registration fields.');
+      const msg = 'Please fill in all registration fields.';
+      setFormError(msg);
+      toast.error(msg);
       return;
     }
 
@@ -30,9 +36,12 @@ export function RegisterPage() {
     try {
       const data = await register(username, email, password);
       toast.success('Account security identity generated!');
+      setFormError(null);
       setRegisteredHex(data.hexId); // Displays the identity reveal panel
     } catch (err) {
-      toast.error(err.message || 'Registration failed. Try again.');
+      const msg = err.message || 'Registration failed. Try again.';
+      setFormError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -87,18 +96,35 @@ export function RegisterPage() {
       ) : (
         /* REGISTRATION FORM */
         <div className="w-full max-w-md bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl relative z-10 space-y-6">
+          
+          {/* Backend Status Banner */}
+          <BackendStatusBanner inline={true} />
+
           <div className="flex flex-col items-center space-y-2">
-            <Link to="/" className="flex items-center space-x-2 outline-none">
-              <div className="bg-white/10 border border-white/20 p-2 rounded-xl text-white">
-                <NexusLogo size={20} className="text-white" />
-              </div>
-              <span className="font-black text-lg tracking-wider text-white uppercase">
-                Nexus
-              </span>
+            <Link to="/" className="flex items-center space-x-2 outline-none pb-2">
+              <NexusLogo size={20} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" />
             </Link>
             <h2 className="text-xl font-bold tracking-tight pt-2 text-white">Generate Hex ID</h2>
             <p className="text-xs text-gray-400">Set credentials to generate cryptographic key</p>
           </div>
+
+          {/* Inline Fallback Error Banner */}
+          {formError && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3.5 flex items-start space-x-3 text-red-300 text-xs">
+              <AlertCircle size={18} className="text-red-400 shrink-0 mt-0.5" />
+              <div className="flex-1 space-y-1">
+                <p className="font-semibold text-red-200">{formError}</p>
+                {formError.toLowerCase().includes('already exists') && (
+                  <p className="text-[11px] text-red-300/80">
+                    Already registered?{' '}
+                    <Link to="/login" className="text-white underline font-semibold hover:text-red-200">
+                      Login here instead
+                    </Link>
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleRegister} className="space-y-4">
             <div className="space-y-1.5 text-left">
@@ -111,7 +137,10 @@ export function RegisterPage() {
                   required
                   placeholder="Anonymous User"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    if (formError) setFormError(null);
+                  }}
                   className="w-full rounded-xl pl-10 pr-4 py-2.5 outline-none transition-all text-sm"
                   style={{
                     background: '#111',
@@ -135,15 +164,18 @@ export function RegisterPage() {
                   required
                   placeholder="you@domain.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (formError) setFormError(null);
+                  }}
                   className="w-full rounded-xl pl-10 pr-4 py-2.5 outline-none transition-all text-sm"
                   style={{
                     background: '#111',
-                    border: '1px solid #333',
+                    border: formError && formError.toLowerCase().includes('already exists') ? '1px solid rgba(239, 68, 68, 0.6)' : '1px solid #333',
                     color: '#fff',
                   }}
                   onFocus={e => { e.currentTarget.style.borderColor = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(255,255,255,0.1)'; }}
-                  onBlur={e => { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.boxShadow = 'none'; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = formError && formError.toLowerCase().includes('already exists') ? 'rgba(239, 68, 68, 0.6)' : '#333'; e.currentTarget.style.boxShadow = 'none'; }}
                 />
                 <Mail size={16} className="absolute left-3.5 top-3.5 text-gray-400" />
               </div>
@@ -159,7 +191,10 @@ export function RegisterPage() {
                   required
                   placeholder="••••••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (formError) setFormError(null);
+                  }}
                   className="w-full rounded-xl pl-10 pr-4 py-2.5 outline-none transition-all text-sm"
                   style={{
                     background: '#111',

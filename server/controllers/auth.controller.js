@@ -81,13 +81,13 @@ const loginUser = async (req, res) => {
     // Check for user email
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(404).json({ message: 'No account found with this email address.' });
     }
 
     // Check password
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({ message: 'Incorrect password. Please verify and try again.' });
     }
 
     const token = generateToken(user._id, req.get('User-Agent') || '');
@@ -213,7 +213,7 @@ const forgotPassword = async (req, res) => {
 
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'No account found with this email address.' });
     }
 
     // Generate 4 digit OTP

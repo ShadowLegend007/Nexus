@@ -1,7 +1,15 @@
 import axios from 'axios';
 
+const getBaseURL = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && !envUrl.includes('172.17.180.222')) {
+    return envUrl.replace('localhost', window.location.hostname);
+  }
+  return `http://${window.location.hostname || 'localhost'}:5000`;
+};
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('localhost', window.location.hostname) : `http://${window.location.hostname}:5000`,
+  baseURL: getBaseURL(),
   timeout: 30000,
 });
 

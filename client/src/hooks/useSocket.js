@@ -7,19 +7,10 @@ import useUiStore from '../store/uiStore';
 export function useSocket() {
   const socketRef = useRef(null);
   const { user, isAuthenticated } = useAuthStore();
-  const { 
-    addMessage, 
-    updateMessageStatus, 
-    markMessageReadInStore, 
-    markMessageDeliveredInStore,
-    deleteMessageInStore,
-    addUserOnline, 
-    removeUserOffline 
-  } = useChatStore();
-  const { setTyping } = useUiStore();
+  const userId = user?._id;
 
   useEffect(() => {
-    if (!isAuthenticated || !user) {
+    if (!isAuthenticated || !userId) {
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
@@ -27,7 +18,14 @@ export function useSocket() {
       return;
     }
 
-    const socketUrl = import.meta.env.VITE_SOCKET_URL ? import.meta.env.VITE_SOCKET_URL.replace('localhost', window.location.hostname) : `http://${window.location.hostname}:5000`;
+    if (socketRef.current && socketRef.current.connected) {
+      return;
+    }
+
+    const envSocket = import.meta.env.VITE_SOCKET_URL;
+    const socketUrl = (envSocket && !envSocket.includes('172.17.180.222'))
+      ? envSocket.replace('localhost', window.location.hostname)
+      : `http://${window.location.hostname || 'localhost'}:5000`;
     
     // Connect to Socket.io gateway
     const socket = io(socketUrl, {
@@ -39,59 +37,59 @@ export function useSocket() {
 
     socket.on('connect', () => {
       console.log('Connected to socket gateway');
-      // Join personal room
-      socket.emit('join', { userId: user._id });
+      socket.emit('join', { userId });
     });
 
     // Handle new incoming messages
     socket.on('message:new', (message) => {
-      addMessage(message);
+      useChatStore.getState().addMessage(message);
     });
 
     // Handle asynchronous real-time ML status updates
     socket.on('message:status', (payload) => {
-      updateMessageStatus(payload.messageId, payload);
+      useChatStore.getState().updateMessageStatus(payload.messageId, payload);
     });
 
     // Handle read receipts
     socket.on('message:read', ({ messageId, readAt }) => {
-      markMessageReadInStore(messageId, readAt);
+      useChatStore.getState().markMessageReadInStore(messageId, readAt);
     });
 
     // Handle delivery receipts
     socket.on('message:delivered', ({ messageId, deliveredAt }) => {
-      markMessageDeliveredInStore(messageId, deliveredAt);
+      useChatStore.getState().markMessageDeliveredInStore(messageId, deliveredAt);
     });
 
     // Handle message deletion
     socket.on('message:delete', ({ messageId, isDeletedForEveryone }) => {
-      deleteMessageInStore(messageId, isDeletedForEveryone);
+      useChatStore.getState().deleteMessageInStore(messageId, isDeletedForEveryone);
     });
 
     // Handle typing indicators
     socket.on('typing:start', ({ senderHexId, conversationId }) => {
-      setTyping(conversationId, senderHexId, true);
+      useUiStore.getState().setTyping(conversationId, senderHexId, true);
     });
 
     socket.on('typing:stop', ({ senderHexId, conversationId }) => {
-      setTyping(conversationId, senderHexId, false);
+      useUiStore.getState().setTyping(conversationId, senderHexId, false);
     });
 
     // Handle user online/offline status updates
     socket.on('user:online', ({ hexId }) => {
-      addUserOnline(hexId);
+      useChatStore.getState().addUserOnline(hexId);
     });
 
     socket.on('user:offline', ({ hexId }) => {
-      removeUserOffline(hexId);
+      useChatStore.getState().removeUserOffline(hexId);
     });
 
     return () => {
       if (socket) {
         socket.disconnect();
+        socketRef.current = null;
       }
     };
-  }, [isAuthenticated, user, addMessage, updateMessageStatus, markMessageReadInStore, markMessageDeliveredInStore, deleteMessageInStore, addUserOnline, removeUserOffline, setTyping]);
+  }, [isAuthenticated, userId]);
 
   return socketRef.current;
 }

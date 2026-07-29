@@ -4,6 +4,8 @@ import { Toaster } from 'react-hot-toast';
 import useAuthStore from './store/authStore';
 import useUiStore from './store/uiStore';
 import Spinner from './components/ui/Spinner';
+import { BackendStatusBanner } from './components/ui/BackendStatusBanner';
+
 // Pages
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -56,6 +58,9 @@ export function App() {
   return (
     <Router>
       <div className="min-h-screen select-none transition-colors duration-200" style={{ backgroundColor: 'var(--bg-app)', color: 'var(--text-primary)' }}>
+        {/* Global Backend Connection Status Banner */}
+        <BackendStatusBanner />
+
         {/* React Hot Toast Configuration */}
         <Toaster
           position="top-center"

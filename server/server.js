@@ -7,6 +7,7 @@ const helmet = require('helmet');
 const path = require('path');
 const connectDB = require('./config/db');
 const socketHandler = require('./socket/socketHandler');
+const startKeepAlive = require('./utils/keepAlive');
 
 // Routes
 const authRoutes = require('./routes/auth.routes');
@@ -54,6 +55,11 @@ app.use((req, res, next) => {
   next();
 });
 
+// Health check route for free server cold-start pinging
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', online: true, timestamp: Date.now() });
+});
+
 // API Routes Mapping
 app.use('/api/auth', authRoutes);
 app.use('/api/contacts', contactRoutes);
@@ -79,4 +85,10 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Nexus Server running on port ${PORT}`);
+
+  // Start keep-alive service if external Render URL is defined
+  const externalUrl = process.env.RENDER_EXTERNAL_URL || process.env.BACKEND_URL;
+  if (externalUrl) {
+    startKeepAlive(externalUrl);
+  }
 });
